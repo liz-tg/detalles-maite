@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>DETALLES MAITE- Tienda Online</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+/* --- ESTILOS ORIGINALES --- */
+body { font-family: Arial; background:#f4f4f4; margin:20px; }
+header { text-align:center; }
+#buscador { width:100%; max-width:400px; padding:10px; border-radius:8px; border:1px solid #ccc; }
+.admin-login-btn{
+  position:fixed; top:12px; right:12px;
+  width:42px; height:42px; border-radius:50%;
+  border:none; background:#ccc; opacity:.5;
+  cursor:pointer; z-index:1001;
+}
+.admin-login-btn.admin-activo{
+  background:#28a745; opacity:1; color:#fff;
+}
+.admin-controls{
+  display:none; max-width:800px; margin:20px auto;
+  background:#fff; padding:12px; border-radius:8px;
+}
+.admin-btn{
+  background:#007bff; color:#fff;
+  border:none; padding:6px 10px;
+  border-radius:6px; cursor:pointer;
+}
+
+.producto{
+  background:#fff; border-radius:12px;
+  padding:12px; text-align:center;
+  box-shadow:0 6px 12px rgba(0,0,0,.15);
+}
+.imagen-container{
+  width: 220px;
+  height: 220px;
+  margin: auto;
+  background:#eee;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:12px;
+  overflow: hidden; /* 🔑 CLAVE: evita que la imagen se salga */
+}
+
+.producto img{ max-width:100%; max-height:100%; }
+.btn-agregar{
+  width:100%; padding:8px;
+  background:#ff9800; color:#fff;
+  border:none; border-radius:8px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  object-fit: cover;   /* 🔥 llena el recuadro sin deformarse */
+}
+.btn-agregar:active { transform: scale(0.92); box-shadow: 0 2px 6px rgba(0,0,0,0.2) inset; }
+.btn-agregar.pulsado { transform: scale(0.9); }
+#toggleCarritoBtn{
+  position:fixed; bottom:15px; right:15px;
+  background:#25D366; color:#fff;
+  border:none; padding:12px 18px;
+  border-radius:30px; cursor:pointer;
+}
+.carrito {
+  position: fixed;
+  top: 250px; right: 0;
+  width: 250px; max-width: 90vw; height: 50vh;
+  background: #1e1e1e; display: flex; flex-direction: column; z-index: 999;
+  transform: translateX(100%);
+  transition: transform 0.3s ease; pointer-events: none;
+  color: #fff;
+}
+.carrito.abierto { transform: translateX(0); pointer-events: auto; }
+#lista-carrito li{ display:flex; gap:8px; border-bottom:1px dashed #fdf7f7; padding:8px 0; font-size:14px;}
+.item-info{ flex:1; }
+.cantidad{ display:flex; gap:6px; align-items:center; }
+.cantidad button{ width:26px; height:26px; border:none; border-radius:6px; background:#333; color:#fff; }
+.btn-eliminar{ background:none; border:none; color:#ff5c5c; cursor:pointer; }
+.total-carrito{ text-align:center; font-size:18px; margin:10px 0; color:#ff9800; }
+.btn-whatsapp{ width:100%; padding:12px; background:#25D366; border:none; border-radius:10px; color:#fff; margin-bottom:8px; }
+.btn-vaciar{ width:100%; padding:10px; background:#dc3545; border:none; border-radius:10px; color:#fff; }
+.carrito-header { padding: 10px; border-bottom: 1px solid #fff; flex-shrink: 0; }
+.carrito-footer { padding: 10px; border-top: 1px solid #f9f9f9; flex-shrink: 0; }
+.carrito-body { flex:1; overflow-y:auto; }
+
+.carrito-acciones{
+  display: flex;
+  gap: 8px;
+}
+
+.carrito-acciones button{
+  flex: 1;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+
+.btn-whatsapp{
+  margin-bottom: 0;
+}
+.admin-controls button{
+  margin: 6px 4px;
+}
+#admin-productos > div{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px;
+  margin-bottom: 6px;
+  background: #f7f7f7;
+  border-radius: 6px;
+}
+
+#admin-productos input[type="text"],
+#admin-productos input[type="number"]{
+  width: 120px;
+  padding: 4px;
+  font-size: 13px;
+}
+
+#admin-productos input[type="file"]{
+  font-size: 12px;
+}
+
+#admin-productos .admin-btn{
+  padding: 4px 8px;
+  font-size: 13px;
+}
+@media (max-width: 600px){
+  .imagen-container{
+    width: 130px;
+    height: 130px;
+  }
+
+  .producto b{
+    font-size: 13px;
+  }
+
+  .btn-agregar{
+    font-size: 13px;
+    padding: 5px;
+  }
+}
+.productos-wrapper{
+  overflow-x: hidden;
+  width: 100%;
+}
+#productos-container{
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+}
+
+#productos-container::-webkit-scrollbar{
+  display: none; /* Chrome */
+}
+#productos-container{
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+}
+
+#productos-container .producto{
+  flex: 0 0 30%;
+  max-width: 30%;
+}
+
+@media (max-width: 600px){
+  .producto{
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+
+  .imagen-container{
+    width: 100%;
+    height: 120px;
+  }
+}
+.productos-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 👈 3 por fila */
+  gap: 16px;
+}
+#productos-normales .producto{
+  width: 80%;
+  max-width: 100%;
+}
+#productos-normales .producto{
+  box-shadow: 0 4px 8px rgba(0,0,0,.12);
+}
+
+/* 🔥 Ajuste SOLO para productos normales */
+#productos-normales .producto .imagen-container{
+  width: 100%;
+  height: 180px;
+}
+#productos-normales .producto img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* 🔥 llena todo el recuadro */
+}
+
+@media (max-width: 600px){
+  .productos-grid{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px){
+  #productos-normales .producto .imagen-container{
+    height: 140px;
+  }
+}
+/* ✨ HOVER ELEGANTE SOLO PRODUCTOS NORMALES */
+#productos-normales .producto{
+  transition: transform .25s ease, box-shadow .25s ease;
+  cursor: pointer;
+}
+
+#productos-normales .producto:hover{
+  transform: translateY(-6px);
+  box-shadow: 0 14px 30px rgba(0,0,0,.18);
+}
+
+/* zoom suave a la imagen */
+#productos-normales .producto:hover img{
+  transform: scale(1.08);
+}
+
+#productos-normales img{
+  transition: transform .35s ease;
+}
+
+/* botón más vivo */
+#productos-normales .producto:hover .btn-agregar{
+  background: #ff7a00;
+}
+@media (hover: none){
+  #productos-normales .producto:hover{
+    transform: none;
+    box-shadow: 0 6px 12px rgba(0,0,0,.15);
+  }
+}
+#lista-carrito {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  width: 100%; /* asegura que la lista ocupe todo el ancho del carrito */
+  box-sizing: border-box;
+}
+
+#lista-carrito li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* separa info y botones */
+  border-bottom: 1px dashed #fdf7f7; /* línea punteada a todo ancho */
+  padding: 8px 10px;
+  font-size: 14px;
+  width: 100%; /* ocupa todo el ancho del carrito */
+  box-sizing: border-box;
+}
+
+.item-info{
+  flex: 1;
+  min-width: 0; /* 🔑 evita que el texto empuje a los botones */
+}
+
+.nombre-producto{
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 1.2;
+  margin-bottom: 2px;
+  word-wrap: break-word;
+}
+
+.codigo-carrito{
+  font-size: 11px;
+  color: #aaa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.precio-carrito{
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.info-producto{
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.nombre-prod{
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 1.2;
+  min-height: 34px; /* 🔑 CLAVE: reserva espacio aunque el nombre sea corto */
+}
+
+.codigo-prod{
+  font-size: 11px;
+  color: #777;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.precio-prod{
+  font-size: 15px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+
+.producto-nombre{
+  font-weight: bold;
+  font-size: 14px;
+  margin-top: 6px;
+  min-height: 34px; /* evita saltos */
+  line-height: 1.2;
+}
+
+.producto-codigo{
+  font-size: 11px;
+  color: #777;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.producto-precio{
+  font-size: 15px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 6px;
+}
+
+
+.buscador-box{
+  display: flex;
+  gap: 8px;
+  margin: 10px;
+}
+
+#tipoBusqueda{
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+#buscador{
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+
+/* 🟢 LOGO DE LA TIENDA */
+.logo-box{
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.logo-tienda{
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;        /* 🔵 CIRCULAR */
+  object-fit: cover;         /* recorta sin deformar */
+  display: none;             /* se muestra solo si hay logo */
+  background: #fff;
+  border: 3px solid #ddd;
+  box-shadow: 0 6px 14px rgba(0,0,0,.2);
+}
+
+/* 📱 móvil */
+@media (max-width:600px){
+  .logo-tienda{
+    width: 70px;
+    height: 70px;
+  }
+}
+
+/* 👉 Espacio entre imagen y nombre del producto */
+.producto .imagen-container{
+  margin-bottom: 10px; /* ajusta a tu gusto */
+}
+
+/* 👉 Un poco más de aire para el nombre */
+.producto .nombre-prod,
+.producto .producto-nombre{
+  margin-top: 4px;
+}
+
+/* 💳 EFECTO BOTÓN COMPRAR */
+.btn-whatsapp{
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-whatsapp:active{
+  transform: scale(0.92);
+  box-shadow: inset 0 3px 8px rgba(0,0,0,0.3);
+}
+
+/* 🗑️ EFECTO BOTÓN VACIAR CARRITO */
+.btn-vaciar{
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-vaciar:active{
+  transform: scale(0.9);
+  box-shadow: inset 0 3px 8px rgba(0,0,0,0.35);
+}
+
+/* pequeño shake de advertencia */
+@keyframes shake{
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-3px); }
+  100% { transform: translateX(0); }
+}
+
+.btn-vaciar.shake{
+  animation: shake 0.25s;
+}
+
+.admin-btn{
+  background:#0d6efd;
+  color:#fff;
+  border:none;
+  padding:8px 12px;
+  font-size:16px;
+  border-radius:6px;
+  cursor:pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  box-shadow: 0 3px 0 #084298;
+}
+
+/* 🔥 efecto al presionar */
+.admin-btn:active{
+  transform: translateY(3px);
+  box-shadow: 0 0 0 #084298;
+}
+
+/* 🔥 IMÁGENES DESTACADOS – llenar todo el recuadro */
+#productos-container .producto img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== PC / pantallas grandes ===== */
+#productos-normales .producto img,
+#productos-container .producto img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+
+/* ===== SOLO MÓVIL ===== */
+@media (max-width: 600px){
+  #productos-normales .producto img,
+  #productos-container .producto img{
+    object-fit: cover;
+  }
+}
+
+
+
+</style>
+</head>
+<body>
+
+<header>
+  <div id="logoBox" class="logo-box">
+  <img id="logoTienda" class="logo-tienda">
+</div>
+
+
+  <h1 id="nombreTienda">🛍️ DETALLES MAITE </h1>
+
+  <div class="buscador-box">
+    <select id="tipoBusqueda">
+      <option value="nombre">Nombre</option>
+      <option value="codigo">Código</option>
+    </select>
+
+    <input 
+      type="text" 
+      id="buscador" 
+      placeholder="Buscar producto..."
+      oninput="filtrarProductos()"
+    >
+  </div>
+</header>
+
+
+<button class="admin-login-btn" onclick="loginAdmin()">🔑</button>
+
+
+
+<div class="admin-controls">
+<h3>Panel administrador</h3>
+
+<h4>Configuración de la tienda</h4>
+
+
+
+
+<h4>💳 Métodos de Pago</h4>
+
+<input id="inputBanco" placeholder="Banco (ej: bcp)">
+<input id="inputCuenta" placeholder="Número de cuenta">
+<input id="inputTitular" placeholder="Titular">
+
+<button onclick="agregarCuentaDesdeAdmin()">➕ Agregar cuenta</button>
+
+<div id="listaCuentasAdmin"></div>
+
+
+<input type="text" id="inputYape" placeholder="📱 Número Yape"
+style="width:100%;padding:8px;margin-bottom:6px;">
+
+<button onclick="guardarPagos()"
+style="width:100%;padding:10px;background:#007bff;color:#fff;border:none;border-radius:8px;">
+💾 Guardar métodos de pago
+</button>
+
+
+
+
+
+<input type="text" id="inputNombreTienda" placeholder="Nombre de la tienda">
+
+<input type="file" id="logoFile" accept="image/*">
+
+<button class="admin-btn" onclick="guardarConfigTienda()">
+  💾 Guardar nombre y logo
+</button>
+
+
+
+<button class="admin-btn" onclick="cambiarPassword()">🔐 Cambiar contraseña</button>
+<br></br>
+<label>📱 Cambiar Número de WhatsApp</label>
+<input type="text" id="inputWhatsapp" placeholder="Ej: 51999999999" style="width:100%;padding:8px;margin-bottom:10px;">
+<button onclick="guardarWhatsapp()" style="width:100%;padding:10px;background:#25D366;color:#fff;border:none;border-radius:8px;">
+  💾 Guardar WhatsApp
+</button>
+
+<h4>Favicon</h4>
+<input type="file" id="faviconFile" accept="image/*">
+<button class="admin-btn" onclick="guardarFavicon()">💾 Guardar Favicon</button>
+
+<h4>Productos</h4>
+<button class="admin-btn" onclick="agregarProducto()">➕ Agregar producto</button>
+<div id="admin-productos"></div>
+</div>
+
+
+<div class="productos-wrapper">
+  <div id="productos-container"></div>
+</div>
+<h2 style="margin:20px 0 10px">🛒 Todos los productos</h2>
+<div id="productos-normales" class="productos-grid"></div>
+
+
+<button id="toggleCarritoBtn" onclick="toggleCarrito()">🛒 Carrito</button>
+
+<div class="carrito" id="carritoPanel">
+  <div class="carrito-header"><h3>🛒 Tu carrito</h3></div>
+  <div class="carrito-body"><ul id="lista-carrito"></ul></div>
+  <div class="carrito-footer">
+    <div class="total-carrito">Total: S/. <span id="total">0.00</span></div>
+   <div class="carrito-acciones">
+   <button class="btn-whatsapp" onclick="comprar()">💳 Comprar</button>
+
+
+  <button class="btn-vaciar" onclick="vaciarCarrito()">🗑️ Vaciar</button>
+</div>
+
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+
+/*cuentas bancarias 6 */  
+let cuentasBancarias = {};
+/*fin cuentas bancarias 6 */ 
+
+
+let passwordCargada = false;
+
+
+// 🔑 CONFIGURA TU FIREBASE AQUÍ
+const firebaseConfig = {
+  apiKey: "AIzaSyBF6jBzB9YxGK_5bv5WL1xM_xbxVbtQWSQ",
+  authDomain: "detalles-maite.firebaseapp.com",
+  projectId: "detalles-maite",
+  storageBucket: "detalles-maite.firebasestorage.app",
+  messagingSenderId: "643452001180",
+  appId: "1:643452001180:web:f97882278ecb600f9dc659",
+  measurementId: "G-X4G242D04E"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let adminPassword = "1234"; // fallback inicial
+
+async function cargarPasswordAdmin(){
+  const doc = await db.collection("config").doc("admin").get();
+  if(doc.exists && doc.data().password){
+    adminPassword = doc.data().password;
+  }
+  passwordCargada = true;
+}
+
+
+/* VARIABLES */
+let productos = [];
+let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+// limpiar carritos antiguos o dañados
+carrito = carrito.filter(i =>
+  typeof i.precio === "number" &&
+  !isNaN(i.precio) &&
+  typeof i.codigo === "string" &&
+  typeof i.nombre === "string"
+);
+
+guardarCarrito();
+
+let esAdmin=false;
+
+let whatsappNumber = "51999999999"; // valor por defecto
+
+async function cargarWhatsappNumber() {
+  try {
+    const doc = await db.collection("config").doc("whatsapp").get();
+    if(doc.exists){
+      whatsappNumber = doc.data().numero || whatsappNumber;
+      console.log("✅ Número WhatsApp cargado:", whatsappNumber);
+    }
+  } catch(err){
+    console.error("❌ Error al cargar WhatsApp:", err);
+  }
+}
+
+
+/* --- ADMIN & PRODUCTOS FIREBASE --- */
+function escucharProductos(){
+  db.collection("productos").orderBy("timestamp","desc").onSnapshot(snapshot=>{
+    productos = [];
+    snapshot.forEach(doc => productos.push({...doc.data(), id: doc.id}));
+    renderAdminProductos();
+    renderProductos();
+  });
+}
+escucharProductos();
+
+function guardarProductoFirestore(p){
+  if(p.id){
+    db.collection("productos").doc(p.id).set(p);
+  } else {
+    db.collection("productos").add({...p, timestamp: firebase.firestore.FieldValue.serverTimestamp()});
+  }
+}
+function eliminarProductoFirestore(id){
+  db.collection("productos").doc(id).delete();
+}
+
+/* --- ADMIN --- */
+function animarBoton(btn){ btn.classList.add("pulsado"); setTimeout(()=>btn.classList.remove("pulsado"),150); }
+
+function loginAdmin(){
+  if(!passwordCargada){
+    alert("⏳ Espera un momento, cargando configuración...");
+    return;
+  }
+
+  let c = prompt("Contraseña de admin");
+  if(c === adminPassword){
+    esAdmin = true;
+    document.querySelector(".admin-controls").style.display = "block";
+    document.querySelector(".admin-login-btn").classList.add("admin-activo");
+    renderAdminProductos();
+    alert("✅ Modo admin activado");
+  } else {
+    alert("❌ Contraseña incorrecta");
+  }
+}
+
+
+function cambiarWhatsApp(){
+  let n=prompt("Número actual de WhatsApp:\n"+whatsappNumber+"\n\nIngrese nuevo número:");
+  if(!n) return;
+  if(!/^\d{8,15}$/.test(n)){alert("Número inválido"); return;}
+  whatsappNumber=n;
+  localStorage.setItem("whatsappNumber",n);
+  alert("✅ WhatsApp actualizado");
+}
+
+async function cambiarPassword(){
+  let actual = prompt("Ingrese la contraseña actual");
+  if(actual !== adminPassword){
+    alert("❌ Contraseña incorrecta");
+    return;
+  }
+
+  let nueva = prompt("Nueva contraseña");
+  if(!nueva || nueva.length < 4){
+    alert("Mínimo 4 caracteres");
+    return;
+  }
+
+  let confirmacion = prompt("Confirme nueva contraseña");
+  if(nueva !== confirmacion){
+    alert("❌ No coinciden");
+    return;
+  }
+
+  await db.collection("config").doc("admin").set({
+    password: nueva
+  });
+
+  adminPassword = nueva;
+  alert("✅ Contraseña cambiada (válida en todos los dispositivos)");
+}
+
+function agregarProducto(){
+  let nuevo = {
+    codigo: generarCodigoUnico(), // 👈 CÓDIGO ÚNICO
+    nombre: "Nuevo producto",
+    precio: 0,
+    imagen: "",
+    destacado: false,
+    timestamp: Date.now()
+  };
+  guardarProductoFirestore(nuevo);
+}
+
+
+function renderAdminProductos(){
+  if(!esAdmin) return;
+  const cont = document.getElementById("admin-productos");
+  cont.innerHTML = "";
+  productos.forEach(p=>{
+    let div = document.createElement("div");
+    div.style.marginBottom="8px";
+    div.innerHTML=`
+      <input id="${p.id}n" value="${p.nombre}" placeholder="Nombre">
+      <input type="number" id="${p.id}p" value="${p.precio}" placeholder="Precio">
+      <input type="file" onchange="cargarImg(event,'${p.id}')">
+      <button class="admin-btn" onclick="guardarProd('${p.id}')">💾</button>
+
+<button class="admin-btn"
+  style="background:${p.destacado ? '#ffc107' : '#6c757d'}"
+  onclick="toggleDestacado('${p.id}')">
+  ⭐ ${p.destacado ? 'Destacado' : 'Destacar'}
+</button>
+
+<button class="admin-btn" style="background:#dc3545" onclick="eliminarProd('${p.id}')">
+  ✖
+</button>
+    `;
+    cont.appendChild(div);
+  });
+}
+function toggleDestacado(id){
+  const p = productos.find(x => x.id === id);
+  if(!p) return;
+
+  // si se va a activar como destacado
+  if(!p.destacado){
+    const totalDestacados = productos.filter(x => x.destacado).length;
+
+    if(totalDestacados >= 20){
+      alert("⚠️ Solo puedes tener 5 productos destacados");
+      return;
+    }
+  }
+
+  p.destacado = !p.destacado;
+  guardarProductoFirestore(p);
+}
+
+function guardarProd(id){
+  let p = productos.find(x=>x.id===id);
+  p.nombre=document.getElementById(id+"n").value;
+  p.precio=parseFloat(document.getElementById(id+"p").value)||0;
+  guardarProductoFirestore(p);
+  alert("✅ Producto guardado correctamente");
+
+}
+
+function eliminarProd(id){
+  if(confirm("¿Eliminar este producto?")){
+    eliminarProductoFirestore(id);
+  }
+}
+
+async function cargarImg(e, id) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const comprimido = await comprimirImagen(file, 0.8, 1024);
+
+  // Convertimos a base64 (Firestore necesita string)
+  const reader = new FileReader();
+  reader.onload = () => {
+    let p = productos.find(x => x.id === id);
+    if (!p) return;
+
+    // mantenemos nombre y precio actuales
+    const nombreInput = document.getElementById(id + "n");
+    const precioInput = document.getElementById(id + "p");
+    if (nombreInput) p.nombre = nombreInput.value;
+    if (precioInput) p.precio = parseFloat(precioInput.value) || 0;
+
+    p.imagen = reader.result; // ✅ IMAGEN COMPRIMIDA
+    guardarProductoFirestore(p);
+
+    console.log("✅ Imagen comprimida y guardada");
+    console.log("Peso final:", Math.round(reader.result.length / 1024), "KB");
+  };
+
+  reader.readAsDataURL(comprimido);
+}
+
+/* --- TIENDA --- */
+async function renderProductosAsync() {
+  const carrusel = document.getElementById("productos-container");
+  const normales = document.getElementById("productos-normales");
+
+  // Mostrar mensaje de carga
+  carrusel.innerHTML = "<p style='padding:20px'>Cargando productos destacados...</p>";
+  normales.innerHTML = "<p style='padding:20px'>Cargando productos...</p>";
+
+  // Esperar que productos ya estén cargados
+  if (!productos.length) {
+    await new Promise(resolve => {
+      const unsubscribe = db.collection("productos")
+        .orderBy("timestamp","desc")
+        .onSnapshot(snapshot => {
+          productos = [];
+          snapshot.forEach(doc => productos.push({...doc.data(), id: doc.id}));
+          unsubscribe(); // dejamos de escuchar para solo render inicial
+          resolve();
+        });
+    });
+  }
+
+  // Limpiar contenedores
+  carrusel.innerHTML = "";
+  normales.innerHTML = "";
+
+  const crearProductoDiv = (p) => {
+    const div = document.createElement("div");
+    div.className = "producto";
+    div.innerHTML = `
+      <div class="imagen-container" onclick="abrirProducto('${p.id}')">
+        <img src="${p.imagen || 'https://via.placeholder.com/220'}" loading="lazy">
+      </div>
+      <div class="info-producto" onclick="abrirProducto('${p.id}')">
+        <div class="nombre-prod">${p.nombre}</div>
+        <div class="codigo-prod">Código: ${p.codigo}</div>
+        <div class="precio-prod">S/. ${p.precio.toFixed(2)}</div>
+      </div>
+      <button class="btn-agregar" onclick="event.stopPropagation(); agregarDesdeBoton(this,'${p.id}')">
+        Agregar
+      </button>
+    `;
+    return div;
+  };
+
+  // --- DESTACADOS ---
+  const destacados = productos.filter(p => p.destacado);
+
+  if(destacados.length > 0){
+    const fragDest = document.createDocumentFragment();
+    destacados.forEach(p => fragDest.appendChild(crearProductoDiv(p)));
+    carrusel.appendChild(fragDest);
+  } else {
+    carrusel.innerHTML = "<p style='padding:20px'>⭐ No hay productos destacados</p>";
+  }
+
+  // --- NORMALES ---
+  const noDestacados = productos.filter(p => !p.destacado);
+  if(noDestacados.length > 0){
+    const fragNorm = document.createDocumentFragment();
+    noDestacados.forEach(p => fragNorm.appendChild(crearProductoDiv(p)));
+    normales.appendChild(fragNorm);
+  } else {
+    normales.innerHTML = "<p style='padding:20px'>No hay productos</p>";
+  }
+}
+
+
+
+
+
+function agregarDesdeBoton(btn,idProducto){
+  animarBoton(btn);
+  let p = productos.find(x => x.id === idProducto);
+  if(!p) return;
+
+  agregarCarrito(p.codigo, p.nombre, p.precio);
+}
+
+/* --- CARRITO --- */
+function agregarCarrito(codigo,nombre,precio){
+  let i = carrito.find(x => x.codigo === codigo);
+  i ? i.cantidad++ : carrito.push({codigo,n:nombre,p:precio,cantidad:1});
+  guardarCarrito();
+  renderCarrito();
+  // Escuchar cambios en localStorage desde otra pestaña o página
+
+
+}
+
+
+function renderCarrito(){
+  let ul = document.getElementById("lista-carrito");
+  ul.innerHTML = "";
+
+  let total = 0;
+  let qty = 0;
+
+  carrito.forEach((i, idx) => {
+    const precio = Number(i.p) || 0;
+    const cantidad = Number(i.cantidad) || 1;
+    const sub = precio * cantidad;
+
+    total += sub;
+    qty += cantidad;
+
+   ul.innerHTML += `
+  <li>
+    <div class="item-info">
+  <div class="nombre-producto">${i.n}</div>
+  <div class="codigo-carrito">Código: ${i.codigo}</div>
+  <div class="precio-carrito">Precio: S/. <b>${precio.toFixed(2)}</b></div>
+</div>
+
+</div>
+    <div class="cantidad">
+      <button onclick="modQty(${idx},-1)">−</button>
+      <span>${cantidad}</span>
+      <button onclick="modQty(${idx},1)">+</button>
+    </div>
+
+    <button class="btn-eliminar" onclick="delItem(${idx})">✖</button>
+  </li>
+`;
+
+  });
+
+  document.getElementById("total").textContent = total.toFixed(2);
+  document.getElementById("toggleCarritoBtn").textContent = `🛒 Carrito (${qty})`;
+}
+
+
+function modQty(i,d){ carrito[i].cantidad=Math.max(1,carrito[i].cantidad+d); guardarCarrito(); renderCarrito(); }
+function delItem(i){ carrito.splice(i,1); guardarCarrito(); renderCarrito(); }
+function vaciarCarrito(){ if(confirm("¿Vaciar carrito?")){ carrito=[]; guardarCarrito(); renderCarrito(); }}
+function guardarCarrito(){ localStorage.setItem("carrito",JSON.stringify(carrito)); }
+function toggleCarrito(){ document.getElementById("carritoPanel").classList.toggle("abierto"); }
+
+/* --- WHATSAPP --- */
+
+/* --- BUSCADOR --- */
+
+function guardarCarrito() {
+    localStorage.setItem("carrito", JSON.stringify(carrito));
+}
+
+
+function guardarFavicon() {
+  const file = document.getElementById("faviconFile").files[0];
+  if(!file) return alert("Selecciona un archivo");
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataURL = e.target.result; // base64 de la imagen
+
+    // Guardamos en Firestore en un documento "config"
+    const configRef = db.collection("config").doc("favicon");
+    await configRef.set({ icon: dataURL });
+    
+    // Aplicamos el favicon inmediatamente
+    setFavicon(dataURL);
+
+    alert("✅ Favicon guardado y aplicado");
+  };
+  reader.readAsDataURL(file);
+}
+
+function setFavicon(url){
+  let link = document.querySelector("link[rel~='icon']");
+  if(!link){
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.href = url;
+}
+async function cargarFavicon() {
+  const doc = await db.collection("config").doc("favicon").get();
+  if(doc.exists){
+    const icon = doc.data().icon;
+    setFavicon(icon);
+  }
+}
+
+
+
+
+// 🔧 CONFIG TIENDA (NOMBRE + LOGO)
+async function guardarConfigTienda(){
+  const nombre = document.getElementById("inputNombreTienda").value;
+  const file = document.getElementById("logoFile").files[0];
+
+  let data = {};
+
+  if(nombre){
+    data.nombre = nombre;
+  }
+
+  if(file){
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      data.logo = e.target.result; // base64
+      await db.collection("config").doc("tienda").set(data, { merge:true });
+      aplicarConfigTienda(data);
+      alert("✅ Configuración guardada");
+    };
+    reader.readAsDataURL(file);
+  } else {
+    await db.collection("config").doc("tienda").set(data, { merge:true });
+    aplicarConfigTienda(data);
+    alert("✅ Configuración guardada");
+  }
+}
+
+function aplicarConfigTienda(data){
+  if(data.nombre){
+    document.getElementById("nombreTienda").textContent = data.nombre;
+  }
+
+  if(data.logo){
+    const img = document.getElementById("logoTienda");
+    img.src = data.logo;
+    img.style.display = "block";
+  }
+}
+
+async function cargarConfigTienda(){
+  const doc = await db.collection("config").doc("tienda").get();
+  if(doc.exists){
+    aplicarConfigTienda(doc.data());
+  }
+}
+
+function abrirProducto(id){
+  if(!id) return;
+  window.open(`producto.html?id=${id}`, "_blank");
+}
+
+
+
+
+/* cuentas bancarias 2 */
+
+async function guardarPagos(){
+  await db.collection("config").doc("pagos").set({
+    yape: document.getElementById("inputYape").value.trim(),
+    cuentas: cuentasBancarias
+  }, { merge: true });
+
+  alert("✅ Métodos de pago guardados");
+}
+
+/* fin cuentas bancarias 2 */   
+
+
+/* cuentas bancarias 3 */  
+
+async function cargarPagosAdmin(){
+  const doc = await db.collection("config").doc("pagos").get();
+  if(doc.exists){
+    const p = doc.data();
+    document.getElementById("inputYape").value = p.yape || "";
+    cuentasBancarias = p.cuentas || {};
+    renderCuentasAdmin();
+  }
+}
+
+
+/* fin cuentas bancarias 3 */   
+
+
+/* cuentas bancarias 7*/  
+
+function agregarCuenta(banco, cuenta, titular){
+  banco = banco.toLowerCase().trim();
+
+  cuentasBancarias[banco] = {
+    cuenta: cuenta.trim(),
+    titular: titular.trim()
+  };
+
+  renderCuentasAdmin();
+}
+ 
+
+/* fin cuentas bancarias 7 */ 
+
+
+
+/* cuentas bancarias 10 */ 
+
+
+function agregarCuentaDesdeAdmin(){
+  const banco = document.getElementById("inputBanco").value.trim().toLowerCase();
+  const cuenta = document.getElementById("inputCuenta").value.trim();
+  const titular = document.getElementById("inputTitular").value.trim();
+
+  if(!banco || !cuenta || !titular){
+    alert("Completa banco, cuenta y titular");
+    return;
+  }
+
+  // 👇 AQUÍ se llena el objeto
+  cuentasBancarias[banco] = {
+    cuenta: cuenta,
+    titular: titular
+  };
+
+  // limpiar inputs
+  inputBanco.value = "";
+  inputCuenta.value = "";
+  inputTitular.value = "";
+
+  renderCuentasAdmin();
+}
+
+/* fin cuentas 10 */  
+
+/* cuentas bancarias 8 */  
+
+function renderCuentasAdmin(){
+  const cont = document.getElementById("listaCuentasAdmin");
+  cont.innerHTML = "";
+
+  Object.keys(cuentasBancarias).forEach(banco => {
+    const c = cuentasBancarias[banco];
+
+    cont.innerHTML += `
+      <div style="border:1px solid #ddd;padding:8px;border-radius:8px;margin-bottom:6px">
+        <b>🏦 ${banco.toUpperCase()}</b><br>
+        Cuenta: ${c.cuenta}<br>
+        Titular: ${c.titular}
+        <br>
+        <button onclick="eliminarCuenta('${banco}')"
+          style="margin-top:6px;background:#dc3545;color:#fff;border:none;border-radius:6px;padding:4px 8px">
+          Eliminar
+        </button>
+      </div>
+    `;
+  });
+}
+
+
+/* fin cuentas bancarias 8*/  
+
+
+/* cuentas bancarias 9 */  
+ function eliminarCuenta(banco){
+  delete cuentasBancarias[banco];
+  renderCuentasAdmin();
+}
+
+/* fin cuentas bancarias 9 */  
+
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+  renderCarrito();
+
+  // Cargar productos de forma optimizada
+  await renderProductosAsync();
+
+  // Cargar configuración
+  cargarFavicon();
+  cargarConfigTienda();
+  cargarPasswordAdmin();
+
+  
+  cargarPagosAdmin();
+
+
+});
+
+
+
+/* INICIAL */
+renderCarrito();
+
+
+
+function comprimirImagen(file, calidad = 0.8, maxWidth = 1024) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        // Calculamos proporción y tamaño final
+        const ratio = img.width / img.height;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.min(img.width, maxWidth);
+        canvas.height = canvas.width / ratio;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // Convertimos a blob comprimido
+        canvas.toBlob(blob => {
+          resolve(blob);
+        }, "image/jpeg", calidad);
+      };
+      img.src = e.target.result;
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+
+
+
+const fileInput = document.getElementById("logoFile");
+
+fileInput.onchange = async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+
+  try {
+    const comprimido = await comprimirImagen(file, 0.8, 1024);
+
+    // Ahora 'comprimido' es un Blob listo para subir a Firebase
+    console.log("Original:", file.size/1024, "KB");
+    console.log("Comprimido:", comprimido.size/1024, "KB");
+
+    // Opcional: convertir a base64 si quieres mostrarla o subirla
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result;
+      console.log("Base64 listo para Firebase:", base64);
+    };
+    reader.readAsDataURL(comprimido);
+
+  } catch(err) {
+    console.error("Error al comprimir la imagen:", err);
+  }
+};
+
+
+
+
+
+uploadTask.on('state_changed', 
+  snapshot => {}, 
+  error => console.error(error), 
+  () => {
+    uploadTask.snapshot.ref.getDownloadURL().then(url => {
+      console.log("URL de la imagen subida:", url);
+    });
+  }
+);
+
+
+</script>
+
+<script>
+const cont = document.getElementById("productos-container");
+
+let auto = true;
+let lastInteraction = 0;
+let speed = 0.5;
+
+function loop(){
+  const now = Date.now();
+
+  // solo mover si pasó suficiente tiempo desde la última interacción
+  if(auto && now - lastInteraction > 1500){
+    cont.scrollLeft += speed;
+
+    if(cont.scrollLeft >= cont.scrollWidth / 2){
+      cont.scrollLeft = 0;
+    }
+  }
+
+  requestAnimationFrame(loop);
+}
+
+function pause(){
+  lastInteraction = Date.now();
+}
+
+cont.addEventListener("wheel", pause, { passive:true });
+cont.addEventListener("touchstart", pause, { passive:true });
+cont.addEventListener("touchmove", pause, { passive:true });
+cont.addEventListener("mousedown", pause);
+
+requestAnimationFrame(loop);
+function generarCodigoUnico(){
+  return "MT-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+}
+
+async function comprar() {
+  if (carrito.length === 0) { 
+    alert("El carrito está vacío"); 
+    return; 
+  }
+
+/* cuentas bancarias 4 */  
+
+let pagos = {};
+const pagosDoc = await db.collection("config").doc("pagos").get();
+if(pagosDoc.exists){
+  pagos = pagosDoc.data();
+}
+
+let htmlCuentas = "";
+
+if (pagos.cuentas) {
+  Object.keys(pagos.cuentas).forEach(banco => {
+    const c = pagos.cuentas[banco];
+
+    htmlCuentas += `
+      <div style="margin-bottom:8px">
+        <b>🏦 ${banco.toUpperCase()}</b><br>
+        Cuenta: ${c.cuenta}<br>
+        Titular: ${c.titular}
+      </div>
+    `;
+  });
+}
+
+
+/* fin cuentas bancarias 4 */  
+
+
+
+
+
+  // ===== Obtener número de WhatsApp desde Firestore =====
+  let whatsappNumber = '';
+  try {
+    const doc = await firebase.firestore().collection("config").doc("whatsapp").get();
+    if(doc.exists){
+      whatsappNumber = doc.data().numero; // asegúrate que el campo en Firestore sea "numero"
+    } else {
+      alert("❌ No se encontró el número de WhatsApp en Firestore");
+      return;
+    }
+  } catch(err){
+    console.error(err);
+    alert("❌ Error al obtener el número de WhatsApp");
+    return;
+  }
+
+  const w = window.open('', '_blank');
+  if (!w) { alert("❌ Permite ventanas emergentes"); return; }
+
+  /* ===== HEAD RESPONSIVE ===== */
+  w.document.head.innerHTML = `
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido DETALLES MAITE</title>
+    <style>
+      /* ===== Tu CSS existente (mantener todo) ===== */
+      body{ font-family: Arial, sans-serif; margin:0; padding:10px; background:#f4f4f4; box-sizing:border-box; }
+      #formularioPedido, #pedidoCompleto{ max-width:500px; width:95%; margin:auto; background:#fff; padding:15px; border-radius:8px; box-sizing:border-box; }
+      input, button{ width:100%; padding:10px; margin-bottom:10px; font-size:14px; box-sizing:border-box; }
+      button{ background:#25D366; color:#fff; border:none; border-radius:8px; cursor:pointer; }
+      table{ width:100%; border-collapse:collapse; font-size:14px; table-layout:fixed; word-wrap:break-word; }
+      th, td{ border-bottom:1px solid #ccc; padding:6px; text-align:left; }
+      img{ max-width:100%; height:auto; border-radius:8px; }
+      .comprobante-box{ margin-top:20px; padding:12px; border:2px dashed #ccc; border-radius:8px; text-align:center; background:#fafafa; }
+      .comprobante-box img{ max-width:100%; max-height:250px; border-radius:6px; border:1px solid #ccc; }
+      @media(max-width:600px){ body{padding:6px;} table{font-size:12px;} input, button{font-size:13px; padding:8px;} #formularioPedido, #pedidoCompleto{padding:10px;} }
+    </style>
+  `;
+
+  /* ===== BODY ===== */
+  w.document.body.innerHTML = `
+    <div id="formularioPedido">
+      <h2>📝 Completa tus datos</h2>
+      <label>Nombre</label>
+      <input id="clienteNombre">
+      <label>Teléfono</label>
+      <input id="clienteTelefono">
+      <label>Dirección</label>
+      <input id="clienteDireccion">
+
+
+    
+
+  ${pagos.yape || htmlCuentas ? `
+  <div style="margin-top:15px;padding:10px;border:1px dashed #ccc;border-radius:8px">
+    <h3>💳 Datos para pago</h3>
+
+    ${pagos.yape ? `<p>📱 <b>Yape:</b> ${pagos.yape}</p>` : ""}
+
+    ${htmlCuentas}
+  </div>
+` : ""}
+
+
+<br></br> 
+
+
+
+      <label>Sube tu Comprobante</label>
+      <input type="file" id="clienteComprobante" accept="image/*">
+      <button id="generarPedidoBtn">📄 Generar pedido</button>
+    </div>
+    <div id="pedidoPreview"></div>
+  `;
+
+  /* ===== SCRIPT ===== */
+  const s = w.document.createElement("script");
+  s.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+  s.onload = () => {
+    w.document.getElementById("generarPedidoBtn").onclick = () => {
+      const nombre = w.document.getElementById("clienteNombre").value;
+      const telefono = w.document.getElementById("clienteTelefono").value;
+      const direccion = w.document.getElementById("clienteDireccion").value;
+      const file = w.document.getElementById("clienteComprobante").files[0];
+
+      if(!nombre || !telefono){
+        alert("Completa nombre y teléfono");
+        return;
+      }
+
+      let total = 0;
+
+      const pedidoHTML = `
+        <div id="pedidoCompleto">
+          <h2>📄 Pedido DETALLES MAITE</h2>
+          <b>Cliente:</b> ${nombre}<br>
+          <b>Tel:</b> ${telefono}<br>
+          <b>Dirección:</b> ${direccion || 'N/A'}<br><br>
+
+          <table>
+            <thead>
+              <tr>
+               <th>Producto</th>
+                <th>Código</th>
+                <th>Precio</th>
+                <th>Cant</th>
+                <th>Sub</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${carrito.map(i=>{
+                const sub = i.p * i.cantidad;
+                total += sub;
+                return `
+                  <tr>
+                    <td>${i.n}</td>
+                    <td>${i.codigo}</td>
+                    <td>S/. ${i.p.toFixed(2)}</td>
+                    <td>${i.cantidad}</td>
+                    <td>S/. ${sub.toFixed(2)}</td>
+                 </tr>
+                  `;
+              }).join("")}
+            </tbody>
+          </table>
+
+          <h3>Total: S/. ${total.toFixed(2)}</h3>
+          
+
+          ${file ? `
+            <div class="comprobante-box">
+              <h3>---------- COMPROBANTE DE PAGO 👇 ----------</h3>
+              <img id="imgComp">
+              <br></br>
+              <h5>Descarga y envia esta imagen por Whatsapp</h5>
+            </div>
+          ` : ``}
+        </div>
+      `;
+
+      const prev = w.document.getElementById("pedidoPreview");
+      prev.innerHTML = pedidoHTML;
+
+      const generarImagen = () => {
+        html2canvas(w.document.getElementById("pedidoCompleto")).then(c=>{
+          const url = c.toDataURL("image/png");
+
+          prev.innerHTML += `
+            <a download="pedido.png" href="${url}"
+              style="display:block;margin-top:10px;background:#007bff;color:#fff;
+                     padding:10px;text-align:center;border-radius:8px">
+              💾 Descargar pedido
+            </a>
+          `;
+
+          const mensaje = `
+
+CLIENTE: ${nombre}
+
+||ADJUNTA AQUI TU PEDIDO DESCAGADO||
+   
+         G R A C I A S 
+           (◠‿◠)
+ 
+          `;
+
+          prev.innerHTML += `
+            <a href="https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensaje)}"
+               target="_blank"
+               style="display:block;margin-top:8px;background:#25D366;color:#fff;
+                      padding:10px;text-align:center;border-radius:8px">
+              📲 Enviar pedido por WhatsApp
+            </a>
+          `;
+        });
+      };
+
+      if(file){
+        const r = new FileReader();
+        r.onload = e=>{
+          w.document.getElementById("imgComp").src = e.target.result;
+          generarImagen();
+        };
+        r.readAsDataURL(file);
+      } else generarImagen();
+    };
+  };
+  w.document.body.appendChild(s);
+}
+//agregadohoyyyyyy
+
+
+
+
+function filtrarProductos() {
+  const valor = document.getElementById("buscador").value.toLowerCase();
+  const criterio = document.getElementById("tipoBusqueda").value;
+
+  // Filtrar productos
+  const filtrados = productos.filter(p => {
+    if(criterio === "nombre") return p.nombre.toLowerCase().includes(valor);
+    if(criterio === "codigo") return p.codigo.toLowerCase().includes(valor);
+    return true;
+  });
+
+  // Función interna para crear HTML de un producto
+  const crearProductoHTML = (p) => `
+    <div class="imagen-container" onclick="abrirProducto('${p.id}')">
+      <img src="${p.imagen || 'https://via.placeholder.com/220'}">
+    </div>
+
+    <div class="info-producto" onclick="abrirProducto('${p.id}')">
+      <div class="nombre-prod">${p.nombre}</div>
+      <div class="codigo-prod">Código: ${p.codigo}</div>
+      <div class="precio-prod">S/. ${p.precio.toFixed(2)}</div>
+    </div>
+
+    <button class="btn-agregar" onclick="event.stopPropagation(); agregarDesdeBoton(this,'${p.id}')">
+      Agregar
+    </button>
+  `;
+
+  // DESTACADOS
+  const carrusel = document.getElementById("productos-container");
+  carrusel.innerHTML = "";
+  const destacados = filtrados.filter(p => p.destacado);
+  if(destacados.length > 0){
+    destacados.slice(0,5).forEach(p=>{
+      const div = document.createElement("div");
+      div.className = "producto";
+      div.innerHTML = crearProductoHTML(p);
+      carrusel.appendChild(div);
+    });
+  } else {
+    carrusel.innerHTML = "<p style='padding:20px'>⭐ No hay productos destacados</p>";
+  }
+
+  // NORMALES
+  const normales = document.getElementById("productos-normales");
+  normales.innerHTML = "";
+  filtrados.filter(p => !p.destacado).forEach(p=>{
+    const div = document.createElement("div");
+    div.className = "producto";
+    div.innerHTML = crearProductoHTML(p);
+    normales.appendChild(div);
+  });
+}
+
+async function guardarWhatsapp() {
+  const input = document.getElementById("inputWhatsapp").value.trim();
+  if(!input) return alert("Ingrese un número");
+  if(!/^\d{8,15}$/.test(input)) return alert("Número inválido");
+
+  try {
+    // Guardar en Firestore
+    await db.collection("config").doc("whatsapp").set({ numero: input });
+
+    // Actualizar variable local y localStorage
+    whatsappNumber = input;
+    localStorage.setItem("whatsappNumber", input);
+
+    alert("✅ Número de WhatsApp guardado correctamente");
+  } catch(err) {
+    console.error(err);
+    alert("❌ Error al guardar WhatsApp");
+  }
+}
+
+window.addEventListener("storage", (e) => {
+  if(e.key === "carrito") {
+    try {
+      carrito = JSON.parse(e.newValue) || [];
+      renderCarrito();
+    } catch(err){
+      console.error("Error al sincronizar carrito:", err);
+    }
+  }
+});
+
+
+</script>
+
+
+<!-- Agregar esto en <head> o antes de </body> -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+</body>
+</html>
